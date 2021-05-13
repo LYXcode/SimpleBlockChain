@@ -1,21 +1,37 @@
+import java.util.ArrayList;
 import java.util.Date;
 
 public class Block {
     public String hash;
     public String previousHash;
-    private String data;
+
+    public String merkleRoot;
+    public ArrayList<Transaction> transactions = new ArrayList<Transaction>();
     private long timeStamp;
     private int nonce;
 
-    public Block(String data, String previousHash) {
-        this.data = data;
+    public Block(String previousHash) {
+        
         this.previousHash = previousHash;
         this.timeStamp = new Date().getTime();
         this.hash = calculateHash();
     }
 
     public String calculateHash() {
-        return StringUtils.applySha256(this.previousHash + this.data + Long.toString(this.timeStamp) + Integer.toString(this.nonce));
+        return StringUtils.applySha256(this.previousHash + this.merkleRoot + Long.toString(this.timeStamp) + Integer.toString(this.nonce));
+    }
+
+    public boolean addTransaction(Transaction transaction){
+		if(transaction == null) return false;		
+		if((previousHash != "0")) {
+			if((transaction.processTransaction() != true)) {
+				System.out.println("Transaction failed to process. Discarded.");
+				return false;
+			}
+		}
+		transactions.add(transaction);
+		System.out.println("Transaction Successfully added to Block");
+		return true;
     }
 
     public void mineBlock(int difficulty){
